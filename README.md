@@ -30,22 +30,70 @@ This assessment project is a small to-do task web application built with modern 
 - **Styling**: Tailwind CSS for modern, responsive design
 - **Icons**: Lucide React for beautiful iconography
 - **State Management**: React hooks for local state management
+- **Container**: Dockerized with Nginx for production serving
 
 ### Backend
-- **Framework**: Spring Boot (Java)
-- **Database**: H2 in-memory database for development
+- **Framework**: Spring Boot (Java 17)
+- **Database**: PostgreSQL (Docker) / H2 (Local development)
 - **API**: RESTful API with JSON responses
 - **Documentation**: Swagger UI for API exploration
 - **Architecture**: Layered architecture with Controller, Service, and Repository layers
+- **Health Checks**: Spring Boot Actuator for container health monitoring
+- **Container**: Dockerized with OpenJDK 17
+
+### Database
+- **Production**: PostgreSQL 15 (Docker container)
+- **Development**: H2 in-memory database (Local development)
+- **Container**: Official PostgreSQL Docker image with persistent volumes
 
 ## 🚀 Getting Started
 
 ### Prerequisites
+
+#### For Docker (Recommended)
+- **Docker** (version 20.0 or higher)
+- **Docker Compose** (version 2.0 or higher)
+
+#### For Local Development
 - **Node.js** (version 16 or higher)
 - **Java** (version 17 or higher)
 - **Maven** (version 3.6 or higher)
 
-### Installation Steps
+### 🐳 Docker Setup (Recommended)
+
+The easiest way to run the entire application is using Docker Compose, which will start all 3 containers:
+
+1. **Clone the Repository**
+   ```bash
+   git clone <repository-url>
+   cd Take_Home
+   ```
+
+2. **Run with Docker Compose**
+   ```bash
+   # Build and start all services (database, backend, frontend)
+   docker-compose up --build
+   
+   # Or run in detached mode
+   docker-compose up -d --build
+   ```
+
+3. **Access the Application**
+   - **Frontend**: `http://localhost:3000`
+   - **Backend API**: `http://localhost:8080`
+   - **Database**: `localhost:5432` (PostgreSQL)
+
+4. **Stop the Application**
+   ```bash
+   docker-compose down
+   
+   # To remove volumes as well
+   docker-compose down -v
+   ```
+
+### 💻 Local Development Setup
+
+If you prefer to run the services locally without Docker:
 
 1. **Clone the Repository**
    ```bash
@@ -127,6 +175,28 @@ This assessment project is a small to-do task web application built with modern 
 
 ## 🔧 Development
 
+### Docker Commands
+```bash
+# Build and start all services
+docker-compose up --build
+
+# Start services in background
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+
+# Rebuild specific service
+docker-compose build backend
+docker-compose up backend
+
+# Remove all containers and volumes
+docker-compose down -v
+```
+
 ### Frontend Development
 ```bash
 cd frontend
@@ -147,30 +217,68 @@ cd backend
 
 ```
 Take_Home/
-├── frontend/                 # React application
+├── frontend/                      # React application
 │   ├── src/
-│   │   ├── components/      # React components
-│   │   ├── lib/            # API utilities
-│   │   ├── App.jsx         # Main app component
-│   │   └── main.jsx        # Entry point
+│   │   ├── components/           # React components
+│   │   ├── lib/                 # API utilities
+│   │   ├── App.jsx              # Main app component
+│   │   └── main.jsx             # Entry point
+│   ├── Dockerfile               # Frontend container config
+│   ├── .dockerignore           # Docker ignore patterns
+│   ├── .env                    # Environment variables
 │   ├── package.json
 │   └── tailwind.config.js
-├── backend/                 # Spring Boot application
+├── backend/                       # Spring Boot application
 │   ├── src/main/java/
 │   │   └── com/example/backend/
-│   │       ├── controller/ # REST controllers
-│   │       ├── entity/     # JPA entities
-│   │       ├── repository/ # Data repositories
-│   │       └── service/    # Business logic
+│   │       ├── controller/      # REST controllers
+│   │       ├── entity/          # JPA entities
+│   │       ├── repository/      # Data repositories
+│   │       └── service/         # Business logic
+│   ├── src/main/resources/
+│   │   ├── application.properties           # Local config
+│   │   └── application-docker.properties   # Docker config
+│   ├── Dockerfile               # Backend container config
+│   ├── .dockerignore           # Docker ignore patterns
 │   └── pom.xml
+├── database/
+│   └── init.sql                 # Database initialization
+├── docker-compose.yml           # Multi-container orchestration
 └── README.md
 ```
 
 ## 🧪 Testing
 
-### Manual Testing Steps
-1. Start both backend and frontend servers
-2. Navigate to the web application
+### Docker Testing Steps
+1. **Start the application with Docker**
+   ```bash
+   docker-compose up --build
+   ```
+
+2. **Verify all containers are running**
+   ```bash
+   docker-compose ps
+   ```
+
+3. **Test the application**
+   - Navigate to `http://localhost:3000`
+   - Create a new task with title and description
+   - Verify task appears in the list
+   - Mark task as completed
+   - Verify task status updates
+
+4. **Check container health**
+   ```bash
+   # Check backend health
+   curl http://localhost:8080/actuator/health
+   
+   # Check database connection
+   docker-compose exec database psql -U todouser -d todoapp -c "\dt"
+   ```
+
+### Manual Testing Steps (Local Development)
+1. Start both backend and frontend servers locally
+2. Navigate to the web application at `http://localhost:5173`
 3. Create a new task with title and description
 4. Verify task appears in the list
 5. Mark task as completed
@@ -195,10 +303,35 @@ This project is created for assessment purposes.
 
 ## 🔧 Troubleshooting
 
+### Docker Issues
+- **Port conflicts**: Make sure ports 3000 (frontend), 8080 (backend), and 5432 (database) are available
+- **Container build fails**: Try `docker-compose build --no-cache`
+- **Database connection issues**: Ensure PostgreSQL container is fully started before backend
+- **Permission issues**: On Linux/Mac, you might need to use `sudo` with Docker commands
+
 ### Common Issues
-- **Port conflicts**: Make sure ports 8080 (backend) and 5173 (frontend) are available
 - **CORS errors**: Backend includes CORS configuration for frontend communication
-- **Database issues**: H2 database runs in-memory and resets on application restart
+- **API connection**: Check that `VITE_API_URL` environment variable is correctly set
+- **Database persistence**: Use `docker-compose down -v` to remove volumes if you need a fresh database
+
+### Useful Docker Commands
+```bash
+# View container logs
+docker-compose logs backend
+docker-compose logs frontend
+docker-compose logs database
+
+# Execute commands in containers
+docker-compose exec backend bash
+docker-compose exec database psql -U todouser -d todoapp
+docker-compose exec frontend sh
+
+# Check container resource usage
+docker stats
+
+# Clean up Docker resources
+docker system prune -a
+```
 
 ### Support
 For technical issues or questions about the implementation, please refer to the code comments and documentation within the source files.

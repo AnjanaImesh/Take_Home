@@ -1,5 +1,5 @@
 // API configuration for Spring Boot backend
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8045/api/v1/todo';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1/todo';
 
 // API service class
 class TodoAPI {
